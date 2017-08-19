@@ -1,13 +1,7 @@
 const fs = require('fs');
 const parse = require('csv-parse');
 
-let fileColumns = JSON.parse(fs.readFileSync("schema/candidatos.json", 'utf8'));
-// fs.readFile("schema/candidatos.json", function (err, data) {
-//   // if (err) {console.log(err);return;}
-//   console.log(data);
-//   console.log("The file was read!");
-// });
-
+let fileColumns = JSON.parse(fs.readFileSync("schemas/candidatos.json", 'utf8'));
 
 let legenda = {};
 const _parse = (inputFileName, federativeUnity, year) => {
