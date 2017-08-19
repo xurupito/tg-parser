@@ -5,9 +5,9 @@ let fileColumns = JSON.parse(fs.readFileSync("schemas/candidatos.json", 'utf8'))
 
 let legenda = {};
 const _parse = (inputFileName, federativeUnity, year) => {
-  if (year in fileColumns) {
-    schema = fileColumns[year];
-  }
+  if (year < 2012) schema = fileColumns.previous;
+  else if (year < 2014) schema = fileColumns["2012"];
+  else if (year >= 2014) schema = fileColumns["2014"];
 
   const parser = parse({
     delimiter: ';',
