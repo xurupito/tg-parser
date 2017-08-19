@@ -1,0 +1,22 @@
+{
+  "previous": [
+    "data_geracao",
+    "hora_geracao",
+    "ano_eleicao",
+    "num_turno",
+    "descricao_eleicao",
+    "sigla_uf",
+    "sigla_ue",
+    "nome_ue",
+    "codigo_cargo",
+    "descricao_cargo",
+    "tipo_legenda",
+    "num_partido",
+    "sigla_partido",
+    "nome_partido",
+    "sigla_coligacao",
+    "nome_coligacao",
+    "composicao_coligacao",
+    "sequencial_coligacao"
+  ]
+}

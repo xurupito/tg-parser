@@ -1,0 +1,14 @@
+{
+  "name": "tg",
+  "version": "1.0.0",
+  "description": "Tg em Redes Sociais - UFPR",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parse": "^1.2.1"
+  }
+}
