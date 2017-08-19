@@ -44,7 +44,9 @@ const parser = parse({
       legenda[d.sigla_uf][d.descricao_cargo] = {};
     }
     if (!legenda[d.sigla_uf][d.descricao_cargo].hasOwnProperty(d.sigla_partido)) {
-      legenda[d.sigla_uf][d.descricao_cargo][d.sigla_partido] = d.composicao_coligacao.split(' / ');
+      let array = d.composicao_coligacao.split(' / ');
+      array.splice(array.indexOf(d.sigla_partido), 1);
+      legenda[d.sigla_uf][d.descricao_cargo][d.sigla_partido] = array;
     }
   });
 

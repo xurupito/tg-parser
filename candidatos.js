@@ -24,11 +24,12 @@ const _parse = (inputFileName, federativeUnity, year) => {
         legenda[federativeUnity][d.descricao_cargo] = {};
       }
       if (!legenda[federativeUnity][d.descricao_cargo].hasOwnProperty(d.sigla_partido)) {
-        legenda[federativeUnity][d.descricao_cargo][d.sigla_partido] = d.composicao_legenda.split(' / ');
+        // remove o proprio partido antes
+        let array = d.composicao_legenda.split(' / ');
+        array.splice(array.indexOf(d.sigla_partido), 1);
+        legenda[federativeUnity][d.descricao_cargo][d.sigla_partido] = array;
       }
     });
-    console.log(legenda);
-    console.log('------------------------------');
   });
 
   return fs.createReadStream(inputFileName).pipe(parser);
