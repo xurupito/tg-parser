@@ -1,19 +1,10 @@
-const fs = require('fs');
-const parse = require('csv-parse');
+const fs = require("fs");
+const parse = require("csv-parse");
 
-const fileColumns = [
-  'data_geracao', 'hora_geracao', 'ano_eleicao', 'num_turno',
-  'descricao_eleicao', 'sigla_uf', 'sigla_ue', 'nome_ue', 'codigo_cargo',
-  'descricao_cargo', 'tipo_legenda', 'num_partido', 'sigla_partido',
-  'nome_partido', 'sigla_coligacao', 'nome_coligacao',
-  'composicao_coligacao', 'sequencial_coligacao'
-]
+let fileColumns = JSON.parse(fs.readFileSync("schemas/legendas.json", "utf8"));
+let legendas = {};
 
-// let legenda = {};
-let uf = '';
-let ano_eleicao = '';
-
-// modelo de como vai ficar o objeto
+// modelo de como vai ficar o objeto na saida
 // {
 //     PR: {
 //         SENADOR: {
@@ -28,36 +19,43 @@ let ano_eleicao = '';
 //         }
 //     }
 // }
-const parser = parse({
-  delimiter: ';',
-  columns: fileColumns
-}, (err, data) => {
-  let legenda = {};
-  if (err) {console.log(err); return;}
-  data.forEach(d => {
-    uf = d.sigla_uf;
-    ano_eleicao = d.ano_eleicao;
-    // Faz algumas verificacoes para o criar os objetos onde as propriedades
-    // ainda nao existem
-    if (!legenda.hasOwnProperty(d.sigla_uf)) legenda[d.sigla_uf] = {};
-    if (!legenda[d.sigla_uf].hasOwnProperty(d.descricao_cargo)) {
-      legenda[d.sigla_uf][d.descricao_cargo] = {};
-    }
-    if (!legenda[d.sigla_uf][d.descricao_cargo].hasOwnProperty(d.sigla_partido)) {
-      let array = d.composicao_coligacao.split(' / ');
-      array.splice(array.indexOf(d.sigla_partido), 1);
-      legenda[d.sigla_uf][d.descricao_cargo][d.sigla_partido] = array;
-    }
-  });
+const _parse = (inputFileName, federativeUnity, year) => {
+  schema = fileColumns.previous;
 
-  fs.writeFile("tmp/" + ano_eleicao + '-' + uf + ".json", JSON.stringify(legenda, null, 2), 'utf8', function (err) {
-    if (err) { console.log(err); return;}
+  const parser = parse({
+    delimiter: ";",
+    columns: schema
+  }, (err, data) => {
+    if (err) {console.log(err); return;}
+    legendas[year] = {};
+    data.forEach(d => {
+      // if (year == "1998") console.log(d.composicao_legenda);
+      // console.log(d);
+      // Faz algumas verificacoes para o criar os objetos onde as propriedades
+      // ainda nao existem
+      if (!legendas[year].hasOwnProperty(d.descricao_cargo)) {
+        legendas[year][d.descricao_cargo] = {};
+      }
+      if (!legendas[year][d.descricao_cargo].hasOwnProperty(d.sigla_partido)) {
+        // remove o proprio partido antes
+        let array = d.composicao_coligacao.split(" / ");
+        array.splice(array.indexOf(d.sigla_partido), 1);
+        legendas[year][d.descricao_cargo][d.sigla_partido] = array;
+      }
+    });
+    // console.log(legendas);
+  });
+  return fs.createReadStream(inputFileName, {encoding: "latin1"}).pipe(parser);
+};
+
+const _writeFile = () => {
+  fs.writeFile("tmp/legendas/geral_PR.json", JSON.stringify(legendas, null, 2), "latin1", function (err) {
+    if (err) {console.log(err); return;}
     console.log("The file was saved!");
   });
-});
-
-const _parse = (inputFileName) => fs.createReadStream(inputFileName).pipe(parser);
+};
 
 module.exports = {
-  parse: _parse
-}
+  parse: _parse,
+  writeFile: _writeFile
+};
