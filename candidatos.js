@@ -3,7 +3,8 @@ const parse = require("csv-parse");
 
 let fileColumns = JSON.parse(fs.readFileSync("schemas/candidatos.json", 'utf8'));
 
-let legendas = {};
+let legendas = {},
+    schema = [];
 const parseFile = (inputFileName, federativeUnity, year) => {
   if (year < 2012) schema = fileColumns.previous;
   else if (year < 2014) schema = fileColumns["2012"];
@@ -32,7 +33,7 @@ const parseFile = (inputFileName, federativeUnity, year) => {
   });
 
   return fs.createReadStream(inputFileName).pipe(parser);
-}
+};
 
 const writeFile = (outputFilename = 'tmp/output.json') => {
   fs.writeFile(outputFilename, JSON.stringify(legendas, null, 2), 'utf8', function (err) {

@@ -6,9 +6,9 @@ const _dirname = "files/consulta_cand_2014/";
 // const _dirname = "files/consulta_legendas_2014/";
 
 /**
-* funcao recursiva para ler todos os arquivos
-* tem que ser feito assim pois, do contrario, há estouro de memoria
-*/
+ * funcao recursiva para ler todos os arquivos
+ * tem que ser feito assim pois, do contrario, há estouro de memoria
+ */
 const parseAllCandidatesFiles = (filenames, index) => {
   let filename = filenames[index];
   if (!filename) {
@@ -26,8 +26,39 @@ const parseAllCandidatesFiles = (filenames, index) => {
   }
 };
 
+const findEdge = (edges, a, b) => {
+  return edges.find(e => e.origem === a && e.destino === b || e.origem === b&& e.destino === a);
+};
+
+const findNode = (nodes, a) => {
+  return nodes.find(n => n === a);
+};
+
 const _generateGraphs = () => {
   let legendas = candidatos.getLegendas();
+  let edges = [], nodes = [];
+
+  for (let estado in legendas) {
+    for (let partido in legendas[estado].GOVERNADOR) {
+      if (!findNode(nodes, partido)) nodes.push(partido);
+
+      legendas[estado].GOVERNADOR[partido].forEach(coligado => {
+        if (!findNode(nodes, coligado)) nodes.push(coligado);
+
+        let a = findEdge(edges, partido, coligado);
+        if (a) {
+          a.peso++;
+        } else {
+          edges.push({origem: partido, destino: coligado, peso: 1});
+        }
+      });
+    }
+  }
+
+  fs.writeFile('tmp/candidatos/graph.json', JSON.stringify({nodes, edges}, null, 2), 'utf8', function (err) {
+    if (err) {console.log(err); return;}
+    console.log("The file was saved!");
+  });
 };
 
 let filenames = [
@@ -38,7 +69,7 @@ let filenames = [
   "files/consulta_legendas_2006/consulta_legendas_2006_PR.txt",
   "files/consulta_legendas_2010/consulta_legendas_2010_PR.txt",
   "files/consulta_legendas_2014/consulta_legendas_2014_PR.txt"
-]
+];
 const parseLegendas = (index) => {
   let filename = filenames[index];
   if (!filename) {legendas.writeFile();return;}
