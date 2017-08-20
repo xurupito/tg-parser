@@ -1,10 +1,10 @@
-const fs = require('fs');
-const parse = require('csv-parse');
+const fs = require("fs");
+const parse = require("csv-parse");
 
 let fileColumns = JSON.parse(fs.readFileSync("schemas/candidatos.json", 'utf8'));
 
-let legenda = {};
-const _parse = (inputFileName, federativeUnity, year) => {
+let legendas = {};
+const parseFile = (inputFileName, federativeUnity, year) => {
   if (year < 2012) schema = fileColumns.previous;
   else if (year < 2014) schema = fileColumns["2012"];
   else if (year >= 2014) schema = fileColumns["2014"];
@@ -14,20 +14,19 @@ const _parse = (inputFileName, federativeUnity, year) => {
     columns: schema
   }, (err, data) => {
     if (err) {console.log(err); return;}
-    legenda[federativeUnity] = {};
+    legendas[federativeUnity] = {};
     data.forEach(d => {
-      ano_eleicao = d.ano_eleicao;
       // Faz algumas verificacoes para o criar os objetos onde as propriedades
       // ainda nao existem
-      // if (!legenda.hasOwnProperty(d.sigla_uf)) legenda[d.sigla_uf] = {};
-      if (!legenda[federativeUnity].hasOwnProperty(d.descricao_cargo)) {
-        legenda[federativeUnity][d.descricao_cargo] = {};
+      // if (!legendas.hasOwnProperty(d.sigla_uf)) legendas[d.sigla_uf] = {};
+      if (!legendas[federativeUnity].hasOwnProperty(d.descricao_cargo)) {
+        legendas[federativeUnity][d.descricao_cargo] = {};
       }
-      if (!legenda[federativeUnity][d.descricao_cargo].hasOwnProperty(d.sigla_partido)) {
+      if (!legendas[federativeUnity][d.descricao_cargo].hasOwnProperty(d.sigla_partido)) {
         // remove o proprio partido antes
         let array = d.composicao_legenda.split(' / ');
         array.splice(array.indexOf(d.sigla_partido), 1);
-        legenda[federativeUnity][d.descricao_cargo][d.sigla_partido] = array;
+        legendas[federativeUnity][d.descricao_cargo][d.sigla_partido] = array;
       }
     });
   });
@@ -35,15 +34,17 @@ const _parse = (inputFileName, federativeUnity, year) => {
   return fs.createReadStream(inputFileName).pipe(parser);
 }
 
-const _writeFile = () => {
-  fs.writeFile("tmp/candidatos/geral.json", JSON.stringify(legenda, null, 2), 'utf8', function (err) {
+const writeFile = (outputFilename = 'tmp/output.json') => {
+  fs.writeFile(outputFilename, JSON.stringify(legendas, null, 2), 'utf8', function (err) {
     if (err) {console.log(err); return;}
     console.log("The file was saved!");
   });
-}
+};
 
+const getLegendas = () => legendas;
 
 module.exports = {
-  parse: _parse,
-  writeFile: _writeFile
+  parseFile,
+  writeFile,
+  getLegendas
 };
