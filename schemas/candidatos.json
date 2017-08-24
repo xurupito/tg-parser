@@ -13,6 +13,7 @@
     "nome_candidato",
     "sequencial_candidato",
     "numero_candidato",
+    "cpf_candidato",
     "nome_urna_candidato",
     "cod_situacao_candidatura",
     "des_situacao_candidatura",
