@@ -1,6 +1,0 @@
-     ODS_ELEICAO_RO.E941_coligacao col
-                    *
-ERROR at line 43:
-ORA-00942: table or view does not exist
-
-
