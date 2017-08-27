@@ -19,28 +19,36 @@ let legendas = {};
 //         }
 //     }
 // }
-const _parse = (inputFileName, federativeUnity, year) => {
+const parseFile = (inputFileName, federativeUnity, year) => {
   schema = fileColumns.previous;
+
+  if (!legendas.hasOwnProperty(year)) {
+    legendas[year] = {};
+  }
 
   const parser = parse({
     delimiter: ";",
     columns: schema
   }, (err, data) => {
     if (err) {console.log(err); return;}
-    legendas[year] = {};
+    legendas[year][federativeUnity] = {};
     data.forEach(d => {
-      // if (year == "1998") console.log(d.composicao_legenda);
-      // console.log(d);
       // Faz algumas verificacoes para o criar os objetos onde as propriedades
       // ainda nao existem
-      if (!legendas[year].hasOwnProperty(d.descricao_cargo)) {
-        legendas[year][d.descricao_cargo] = {};
+      let {composicao_coligacao, descricao_cargo, sigla_partido} = d;
+      descricao_cargo = descricao_cargo.trim();
+      sigla_partido = sigla_partido.trim().replace(/\s/g, "").toLowerCase();
+
+      if (descricao_cargo != "GOVERNADOR") return;
+
+      if (!legendas[year][federativeUnity].hasOwnProperty(descricao_cargo)) {
+        legendas[year][federativeUnity][descricao_cargo] = {};
       }
-      if (!legendas[year][d.descricao_cargo].hasOwnProperty(d.sigla_partido)) {
+      if (sigla_partido != "#nulo#" && !legendas[year][federativeUnity][descricao_cargo].hasOwnProperty(sigla_partido)) {
         // remove o proprio partido antes
-        let array = d.composicao_coligacao.split(" / ");
-        array.splice(array.indexOf(d.sigla_partido), 1);
-        legendas[year][d.descricao_cargo][d.sigla_partido] = array;
+        let array = composicao_coligacao.split("/").map(x => x.trim().replace(/\s/g, "").toLowerCase());
+        array.splice(array.indexOf(sigla_partido), 1);
+        legendas[year][federativeUnity][descricao_cargo][sigla_partido] = array;
       }
     });
     // console.log(legendas);
@@ -48,14 +56,17 @@ const _parse = (inputFileName, federativeUnity, year) => {
   return fs.createReadStream(inputFileName, {encoding: "latin1"}).pipe(parser);
 };
 
-const _writeFile = () => {
+const writeFile = () => {
   fs.writeFile("tmp/legendas/geral_PR.json", JSON.stringify(legendas, null, 2), "latin1", function (err) {
     if (err) {console.log(err); return;}
     console.log("The file was saved!");
   });
 };
 
+const getLegendas = () => legendas;
+
 module.exports = {
-  parse: _parse,
-  writeFile: _writeFile
+  parseFile,
+  writeFile,
+  getLegendas
 };
