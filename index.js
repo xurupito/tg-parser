@@ -67,47 +67,48 @@ const _generateGraphs = (legendas, outputFilename) => {
   for (let ano in legendas) {
     graph[ano] = {nodes: [], edges: []};
     for (let estado in legendas[ano]) {
-      for (let partido in legendas[ano][estado].GOVERNADOR) {
-        if (!findNode(graph[ano].nodes, partido)) graph[ano].nodes.push(partido);
+      let grafo_estado = {nodes: [], edges: []};
+      for (let idx in legendas[ano][estado].GOVERNADOR) {
+        coligacao = legendas[ano][estado].GOVERNADOR[idx];
 
-        // if (ano === 2014 && estado === 'PR') {
-        //   myGexf.addNode({
-        //     id: partido,
-        //     label: partido
-        //     // attributes: {
-        //     //   name: 'John',
-        //     //   surname: 'Silver'
-        //     // }
-        //     // viz: {
-        //     //   color: 'rgb(255, 234, 45)'
-        //     // }
-        //   });
-        // }
-        legendas[ano][estado].GOVERNADOR[partido].forEach(coligado => {
-          if (!findNode(graph[ano].nodes, coligado)) graph[ano].nodes.push(coligado);
-
-          // if (ano == 2014) {
-          //   myGexf.addNode({
-          //     id: coligado,
-          //     label: coligado
-          //   });
-          //
-          //
-          //   myGexf.addEdge({
-          //     id: 'e' + (teste++),
-          //     source: partido,
-          //     target: coligado
-          //   });
-          // }
-
-          let a = findEdge(graph[ano].edges, partido, coligado);
-          if (a) {
-            a.peso++;
-          } else {
-            graph[ano].edges.push({origem: partido, destino: coligado, peso: 1});
+        if (!findNode(graph[ano].nodes, coligacao[0])) graph[ano].nodes.push(coligacao[0]);
+        for (let i = 0; i < coligacao.length - 1; i++) {
+          for (let j = i + 1; j < coligacao.length; j++) {
+            if (!findNode(graph[ano].nodes, coligacao[j])) graph[ano].nodes.push(coligacao[j]);
+            let a = findEdge(graph[ano].edges, coligacao[i], coligacao[j]);
+            if (a) {
+              a.peso++;
+            } else {
+              graph[ano].edges.push({origem: coligacao[i], destino: coligacao[j], peso: 1});
+            }
           }
-        });
+        }
       }
+
+      //   //   myGexf.addNode({
+      //   //     id: partido,
+      //   //     label: partido
+      //   //     // attributes: {
+      //   //     //   name: 'John',
+      //   //     //   surname: 'Silver'
+      //   //     // }
+      //   //     // viz: {
+      //   //     //   color: 'rgb(255, 234, 45)'
+      //   //     // }
+      //   //   });
+      //     // if (ano == 2014) {
+      //     //   myGexf.addNode({
+      //     //     id: coligado,
+      //     //     label: coligado
+      //     //   });
+      //     //
+      //     //
+      //     //   myGexf.addEdge({
+      //     //     id: 'e' + (teste++),
+      //     //     source: partido,
+      //     //     target: coligado
+      //     //   });
+      //     // }
     }
   }
 
@@ -125,20 +126,11 @@ const _generateGraphs = (legendas, outputFilename) => {
   });
 };
 
-let filenames = [
-  "files/consulta_legendas_1990/CONSULTA_LEGENDA_1990_PR.txt",
-  // "files/consulta_legendas_1994/consulta_legendas_1994_PR.txt",
-  "files/consulta_legendas_1998/consulta_legendas_1998_PR.txt",
-  "files/consulta_legendas_2002/consulta_legendas_2002_PR.txt",
-  "files/consulta_legendas_2006/consulta_legendas_2006_PR.txt",
-  "files/consulta_legendas_2010/consulta_legendas_2010_PR.txt",
-  "files/consulta_legendas_2014/consulta_legendas_2014_PR.txt"
-];
 const parseLegendas = (filenames, index) => {
   let filename = filenames[index];
   if (!filename) {
     legendas.writeFile();
-    _generateGraphs(legendas.getLegendas(), "tmp/legendas/graph.json");
+    // _generateGraphs(legendas.getLegendas(), "tmp/legendas/graph.json");
     return;
   }
   console.log("iniciando o parse do arquivo: " + _dirname_legendas + filename);
@@ -150,8 +142,8 @@ fs.readdir(_dirname_candidatos, (err, filenames) => {
   if (err) { console.log(err); return;}
   parseAllCandidatesFiles(filenames, 0);
 
-  fs.readdir(_dirname_legendas, (err, filenames) => {
-    if (err) { console.log(err); return;}
-    parseLegendas(filenames, 0);
-  });
+  // fs.readdir(_dirname_legendas, (err, filenames) => {
+  //   if (err) { console.log(err); return;}
+  //   parseLegendas(filenames, 0);
+  // });
 });

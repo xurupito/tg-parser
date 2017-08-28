@@ -19,6 +19,16 @@ let legendas = {};
 //         }
 //     }
 // }
+
+const _findColigacao = (coligacoes, c) => {
+   for (var i = 0;i<coligacoes.length;i++) {
+     if (coligacoes[i].every(x => c.includes(x))) {
+       return true
+     }
+   }
+   return false;
+ };
+
 const parseFile = (inputFileName, federativeUnity, year) => {
   schema = fileColumns.previous;
 
@@ -42,14 +52,35 @@ const parseFile = (inputFileName, federativeUnity, year) => {
       if (descricao_cargo != "GOVERNADOR") return;
 
       if (!legendas[year][federativeUnity].hasOwnProperty(descricao_cargo)) {
-        legendas[year][federativeUnity][descricao_cargo] = {};
+        legendas[year][federativeUnity][descricao_cargo] = [];
       }
-      if (sigla_partido != "#nulo#" && !legendas[year][federativeUnity][descricao_cargo].hasOwnProperty(sigla_partido)) {
-        // remove o proprio partido antes
-        let array = composicao_coligacao.split("/").map(x => x.trim().replace(/\s/g, "").toLowerCase());
-        array.splice(array.indexOf(sigla_partido), 1);
-        legendas[year][federativeUnity][descricao_cargo][sigla_partido] = array;
+      // if (sigla_partido != "#nulo#" && !legendas[year][federativeUnity][descricao_cargo].hasOwnProperty(sigla_partido)) {
+      //   // remove o proprio partido antes
+      //   let array = composicao_coligacao.split("/").map(x => x.trim().replace(/\s/g, "").toLowerCase());
+      //   array.splice(array.indexOf(sigla_partido), 1);
+      //   legendas[year][federativeUnity][descricao_cargo][sigla_partido] = array;
+      // }
+
+
+
+      if (sigla_partido != "#nulo#") {
+        let coligacao;
+        if (composicao_coligacao == "#NULO#" || composicao_coligacao == "#NE#") {
+          coligacao = [sigla_partido];
+        } else {
+          coligacao = composicao_coligacao.split('/').map(x => x.trim().replace(/\s/g, "").toLowerCase());
+        }
+        // coligacao.splice(coligacao.indexOf(sigla_partido), 1);
+        if (!_findColigacao(legendas[year][federativeUnity][descricao_cargo], coligacao)){
+          legendas[year][federativeUnity][descricao_cargo].push(coligacao);
+        }
       }
+
+
+
+
+
+
     });
     // console.log(legendas);
   });
