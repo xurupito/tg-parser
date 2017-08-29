@@ -8,9 +8,9 @@ const _dirname_legendas = "files/legendas/";
 // const _dirname_candidatos = "files/consulta_legendas_2014/";
 
 /**
- * funcao recursiva para ler todos os arquivos
- * tem que ser feito assim pois, do contrario, há estouro de memoria
- */
+* funcao recursiva para ler todos os arquivos
+* tem que ser feito assim pois, do contrario, há estouro de memoria
+*/
 const parseAllCandidatesFiles = (filenames, index) => {
   let filename = filenames[index];
   if (!filename) {
@@ -37,33 +37,17 @@ const findNode = (nodes, a) => {
 };
 
 const _generateGraphs = (legendas, outputFilename) => {
-  // let legendas = candidatos.getLegendas();
-  let graph = {}, parana = {};
-  // let myGexf = gexf.create({
-  //   version: "1.0.1",
-  //   meta: {
-  //     creator: "Xurupito",
-  //     lastmodifieddate: "2017-08-27+01:40",
-  //     title: "A random graph"
-  //   },
-  //   mode: "static"
-  //
-    // model: {
-    //   node: [
-    //     {
-    //       id: "authority",
-    //       type: "float",
-    //       title: "Authority"
-    //     },
-    //     {
-    //       id: "name",
-    //       type: "string",
-    //       title: "Author's name"
-    //     }
-    //   ]
-    // }
-  // });
-  // let teste = 0;
+  let graph = {};
+  let myGexf = gexf.create({
+    version: "1.0.1",
+    meta: {
+      creator: "TG Redes Sociais",
+      lastmodifieddate: "2017-08-29+01:53",
+      title: "A random graph"
+    },
+    mode: "static"
+  });
+
   for (let ano in legendas) {
     graph[ano] = {nodes: [], edges: []};
     for (let estado in legendas[ano]) {
@@ -84,32 +68,28 @@ const _generateGraphs = (legendas, outputFilename) => {
           }
         }
       }
-
-      //   //   myGexf.addNode({
-      //   //     id: partido,
-      //   //     label: partido
-      //   //     // attributes: {
-      //   //     //   name: 'John',
-      //   //     //   surname: 'Silver'
-      //   //     // }
-      //   //     // viz: {
-      //   //     //   color: 'rgb(255, 234, 45)'
-      //   //     // }
-      //   //   });
-      //     // if (ano == 2014) {
-      //     //   myGexf.addNode({
-      //     //     id: coligado,
-      //     //     label: coligado
-      //     //   });
-      //     //
-      //     //
-      //     //   myGexf.addEdge({
-      //     //     id: 'e' + (teste++),
-      //     //     source: partido,
-      //     //     target: coligado
-      //     //   });
-      //     // }
     }
+  }
+
+
+  for ([partido] in graph["1994"].nodes) {
+    myGexf.addNode({
+      id: partido,
+      label: partido,
+      viz: {
+        color: 'rgb(255, 234, 45)'
+      }
+    });
+  }
+  let edges = graph["1994"].edges;
+  let len = edges.length;
+  for (let i = 0; i < len; i++) {
+    myGexf.addEdge({
+      id: 'e' + edges[i].origem + edges[i].destino,
+      source: edges[i].origem,
+      target: edges[i].destino,
+      weight: edges[i].peso
+    });
   }
 
   fs.writeFile(outputFilename, JSON.stringify(graph, null, 2), 'utf8', function (err) {
@@ -117,10 +97,10 @@ const _generateGraphs = (legendas, outputFilename) => {
     console.log("The file " + outputFilename + " was saved!");
 
 
-    // fs.writeFile(outputFilename + ".gexf", myGexf.serialize(), 'utf8', function (err) {
-    //   if (err) {console.log(err); return;}
-    //   console.log("The file " + outputFilename + ".gexf was saved!");
-    // });
+    fs.writeFile(outputFilename + ".gexf", myGexf.serialize(), 'utf8', function (err) {
+      if (err) {console.log(err); return;}
+      console.log("The file " + outputFilename + ".gexf was saved!");
+    });
 
 
   });
