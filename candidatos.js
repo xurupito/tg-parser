@@ -30,7 +30,7 @@ const parseFile = (inputFileName, federativeUnity, year) => {
     relax: true,
   }, (err, data) => {
     if (err) {console.log(err); return;}
-    legendas[year][federativeUnity] = {};
+    legendas[year][federativeUnity] = [];
     data.forEach(d => {
       // Faz algumas verificacoes para o criar os objetos onde as propriedades
       // ainda nao existem
@@ -54,8 +54,8 @@ const parseFile = (inputFileName, federativeUnity, year) => {
           coligacao = composicao_legenda.split('/').map(x => x.trim().replace(/\s/g, "").toLowerCase());
         }
         // coligacao.splice(coligacao.indexOf(sigla_partido), 1);
-        if (!_findColigacao(legendas[year][federativeUnity][descricao_cargo], coligacao)){
-          legendas[year][federativeUnity][descricao_cargo].push(coligacao);
+        if (!_findColigacao(legendas[year][federativeUnity], coligacao)){
+          legendas[year][federativeUnity].push(coligacao);
         }
       // }
     });

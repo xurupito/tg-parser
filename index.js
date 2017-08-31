@@ -1,5 +1,5 @@
 const fs = require("fs");
-const gexf = require("gexf");
+const xmlbuilder = require('xmlbuilder');
 const legendas = require("./legendas");
 const candidatos = require("./candidatos");
 
@@ -15,7 +15,7 @@ const parseAllCandidatesFiles = (filenames, index) => {
   let filename = filenames[index];
   if (!filename) {
     candidatos.writeFile("tmp/candidatos/geral.json");
-    _generateGraphs(candidatos.getLegendas(), "tmp/candidatos/graph.json");
+    _generateGraphsWithWeight(candidatos.getLegendas(), "tmp/candidatos/graph.json");
     return;
   }
   let ext = filename.substring(filename.indexOf(".") + 1);
@@ -36,24 +36,16 @@ const findNode = (nodes, a) => {
   return nodes.find(n => n === a);
 };
 
-const _generateGraphs = (legendas, outputFilename) => {
+const _generateGraphsWithWeight = (legendas, outputFilename) => {
   let graph = {};
-  let myGexf = gexf.create({
-    version: "1.0.1",
-    meta: {
-      creator: "TG Redes Sociais",
-      lastmodifieddate: "2017-08-29+01:53",
-      title: "A random graph"
-    },
-    mode: "static"
-  });
+  let now = new Date();
 
   for (let ano in legendas) {
     graph[ano] = {nodes: [], edges: []};
     for (let estado in legendas[ano]) {
       let grafo_estado = {nodes: [], edges: []};
-      for (let idx in legendas[ano][estado].GOVERNADOR) {
-        coligacao = legendas[ano][estado].GOVERNADOR[idx];
+      for (let idx = 0; idx < legendas[ano][estado].length; idx++) {
+        coligacao = legendas[ano][estado][idx];
 
         if (!findNode(graph[ano].nodes, coligacao[0])) graph[ano].nodes.push(coligacao[0]);
         for (let i = 0; i < coligacao.length - 1; i++) {
@@ -72,37 +64,105 @@ const _generateGraphs = (legendas, outputFilename) => {
   }
 
 
-  for ([partido] in graph["1994"].nodes) {
-    myGexf.addNode({
-      id: partido,
-      label: partido,
-      viz: {
-        color: 'rgb(255, 234, 45)'
+
+
+  let gexf_graph = {nodes: [], edges: []};
+  for (let ano in graph) {
+    for (let i = 0; i < graph[ano].nodes.length; i++) {
+      let node = graph[ano].nodes[i];
+      /* se o nodo ja existe, somente altera a data final dele */
+      let n = gexf_graph.nodes.find(n => n["@label"] === node);
+      if (n) {
+        n["@end"] = ano;
+      } else {
+        gexf_graph.nodes.push({
+          "@id": node,
+          "@label": node,
+          "@start": ano,
+          "@end": ano
+        });
       }
-    });
-  }
-  let edges = graph["1994"].edges;
-  let len = edges.length;
-  for (let i = 0; i < len; i++) {
-    myGexf.addEdge({
-      id: 'e' + edges[i].origem + edges[i].destino,
-      source: edges[i].origem,
-      target: edges[i].destino,
-      weight: edges[i].peso
-    });
+    }
+
+    for (let i = 0; i < graph[ano].edges.length; i++) {
+      let edge = graph[ano].edges[i];
+      let a = edge.origem;
+      let b = edge.destino;
+      let e = gexf_graph.edges.find(e => e["@source"] === a && e["@target"] === b || e["@target"] === b && e["@source"] === a);
+      if (e) {
+        e.attvalues.attvalue.push({
+          "@for": "weight",
+          "@value": edge.peso,
+          "@start": ano,
+          "@end": ano
+        });
+      } else {
+        gexf_graph.edges.push({
+          "@id": "e-" + a + "-" + b,
+          "@source": a,
+          "@target": b,
+          "attvalues": {
+            "attvalue": [
+              {
+                "@for": "weight",
+                "@value": edge.peso,
+                "@start": ano,
+                "@end": ano,
+              }
+            ]
+          }
+        });
+      }
+    }
   }
 
-  fs.writeFile(outputFilename, JSON.stringify(graph, null, 2), 'utf8', function (err) {
+
+  let xmlObj = {
+    "gexf": {
+      "@xmlns": "http://www.gexf.net/1.2draft",
+      "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+      "@xsi:schemaLocation": "http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd",
+      "@version": "1.2",
+      "meta": {
+        "@lastmodifieddate": now.toISOString().slice(0,10),
+        "creator": "TG Redes Sociais",
+        "title": "A dança dos partidos"
+      },
+      "graph": {
+        "@defaultedgetype": "undirected",
+        "@mode": "dynamic",
+        "@timeformat": "YYYY",
+        "attributes": {
+          "@class": "edge",
+          "@mode": "dynamic",
+          "attribute": {
+            "@id": "weight",
+            "@type": "float",
+            "@title": "weight"
+          }
+        }
+      },
+      "nodes": {
+        "node": gexf_graph.nodes
+      },
+      "edges": {
+        "edge": gexf_graph.edges
+      }
+    }
+  }
+
+
+  let final_graph = xmlbuilder.create(xmlObj, { encoding: 'utf-8' })
+
+  fs.writeFile(outputFilename, JSON.stringify(graph, null, 2), "utf8", function (err) {
     if (err) {console.log(err); return;}
     console.log("The file " + outputFilename + " was saved!");
 
 
-    fs.writeFile(outputFilename + ".gexf", myGexf.serialize(), 'utf8', function (err) {
+    fs.writeFile(outputFilename + ".gexf", final_graph.end({ pretty: true }), 'utf8', function (err) {
       if (err) {console.log(err); return;}
       console.log("The file " + outputFilename + ".gexf was saved!");
     });
-
-
   });
 };
 
@@ -110,7 +170,7 @@ const parseLegendas = (filenames, index) => {
   let filename = filenames[index];
   if (!filename) {
     legendas.writeFile();
-    // _generateGraphs(legendas.getLegendas(), "tmp/legendas/graph.json");
+    // _generateGraphsWithWeight(legendas.getLegendas(), "tmp/legendas/graph.json");
     return;
   }
   console.log("iniciando o parse do arquivo: " + _dirname_legendas + filename);

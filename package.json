@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "csv-parse": "^1.2.1",
-    "gexf": "^0.2.5"
+    "xmlbuilder": "^9.0.4"
   }
 }
