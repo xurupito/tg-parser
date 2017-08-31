@@ -116,13 +116,13 @@ const _generateGraphsWithWeight = (legendas, outputFilename) => {
     }
   }
 
-
   let xmlObj = {
     "gexf": {
-      "@xmlns": "http://www.gexf.net/1.2draft",
+      "@xmlns": "http://www.gexf.net/1.3",
       "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-      "@xsi:schemaLocation": "http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd",
-      "@version": "1.2",
+      "@xmlns:viz": "http://www.gexf.net/1.3/viz",
+      "@xsi:schemaLocation": "http://www.gexf.net/1.3 http://www.gexf.net/1.3/gexf.xsd",
+      "@version": "1.3",
       "meta": {
         "@lastmodifieddate": now.toISOString().slice(0,10),
         "creator": "TG Redes Sociais",
@@ -131,14 +131,14 @@ const _generateGraphsWithWeight = (legendas, outputFilename) => {
       "graph": {
         "@defaultedgetype": "undirected",
         "@mode": "dynamic",
-        "@timeformat": "YYYY",
+        "@timeformat": "date",
         "attributes": {
           "@class": "edge",
           "@mode": "dynamic",
           "attribute": {
             "@id": "weight",
-            "@type": "float",
-            "@title": "weight"
+            "@type": "double",
+            "@title": "Weight"
           }
         }
       },
