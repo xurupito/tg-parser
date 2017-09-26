@@ -15,7 +15,7 @@ const parseAllCandidatesFiles = (filenames, index) => {
   let filename = filenames[index];
   if (!filename) {
     candidatos.writeFile("tmp/candidatos/geral.json");
-    _generateGraphsWithWeight(candidatos.getLegendas(), "tmp/candidatos/graph.json");
+    _generateGraphsWithWeightByYear(candidatos.getLegendas(), "tmp/candidatos/graph.json");
     return;
   }
   let ext = filename.substring(filename.indexOf(".") + 1);
@@ -163,6 +163,105 @@ const _generateGraphsWithWeight = (legendas, outputFilename) => {
       if (err) {console.log(err); return;}
       console.log("The file " + outputFilename + ".gexf was saved!");
     });
+  });
+};
+
+const _generateGraphsWithWeightByYear = (legendas, outputFilename) => {
+  let graph = {};
+  let now = new Date();
+
+  for (let ano in legendas) {
+    graph[ano] = {nodes: [], edges: []};
+    for (let estado in legendas[ano]) {
+      let grafo_estado = {nodes: [], edges: []};
+      for (let idx = 0; idx < legendas[ano][estado].length; idx++) {
+        coligacao = legendas[ano][estado][idx];
+
+        if (!findNode(graph[ano].nodes, coligacao[0])) graph[ano].nodes.push(coligacao[0]);
+        for (let i = 0; i < coligacao.length - 1; i++) {
+          for (let j = i + 1; j < coligacao.length; j++) {
+            if (!findNode(graph[ano].nodes, coligacao[j])) graph[ano].nodes.push(coligacao[j]);
+            let a = findEdge(graph[ano].edges, coligacao[i], coligacao[j]);
+            if (a) {
+              a.peso++;
+            } else {
+              graph[ano].edges.push({origem: coligacao[i], destino: coligacao[j], peso: 1});
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+
+
+  for (let ano in graph) {
+    let gexf_graph = {nodes: [], edges: []};
+    for (let i = 0; i < graph[ano].nodes.length; i++) {
+      let node = graph[ano].nodes[i];
+      gexf_graph.nodes.push({
+        "@id": node,
+        "@label": node
+      });
+    }
+
+    for (let i = 0; i < graph[ano].edges.length; i++) {
+      let edge = graph[ano].edges[i];
+      gexf_graph.edges.push({
+        "@id": "e-" + edge.origem + "-" + edge.destino + '-' + ano,
+        "@source": edge.origem,
+        "@target": edge.destino,
+        "@weight": edge.peso
+      });
+    }
+
+
+    // <graph mode="slice"  timerepresentation="timestamp" timestamp="1">
+
+    let xmlObj = {
+      "gexf": {
+        "@xmlns": "http://www.gexf.net/1.3",
+        "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "@xmlns:viz": "http://www.gexf.net/1.3/viz",
+        "@xsi:schemaLocation": "http://www.gexf.net/1.3 http://www.gexf.net/1.3/gexf.xsd",
+        "@version": "1.3",
+        "meta": {
+          "@lastmodifieddate": now.toISOString().slice(0,10),
+          "creator": "TG Redes Sociais",
+          "title": "A dança dos partidos"
+        },
+        "graph": {
+          "@defaultedgetype": "undirected",
+          "@mode": "slice",
+          "@timerepresentation": "timestamp",
+          "@timestamp": ano,
+        },
+        "nodes": {
+          "node": gexf_graph.nodes
+        },
+        "edges": {
+          "edge": gexf_graph.edges
+        }
+      }
+    }
+    let final_graph = xmlbuilder.create(xmlObj, { encoding: 'utf-8' })
+
+    fs.writeFileSync(outputFilename + ano + ".gexf", final_graph.end({ pretty: true }));
+
+  }
+
+
+
+  fs.writeFile(outputFilename, JSON.stringify(graph, null, 2), "utf8", function (err) {
+    if (err) {console.log(err); return;}
+    console.log("The file " + outputFilename + " was saved!");
+
+
+    // fs.writeFile(outputFilename + ".gexf", final_graph.end({ pretty: true }), 'utf8', function (err) {
+    //   if (err) {console.log(err); return;}
+    //   console.log("The file " + outputFilename + ".gexf was saved!");
+    // });
   });
 };
 
